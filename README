@@ -1,0 +1,8 @@
+
+thumbnaild - a simple thumbnail generator service
+
+This service differs from tumbler, which implements a service aligned with the
+freedesktop.org Thumbnail management guidelines ( https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html )
+by aiming to share thumbnails with GUI applications using the nemo-qml-plugin-thumbnailer
+thumbnail generation logic.
+
