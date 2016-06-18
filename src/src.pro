@@ -4,12 +4,11 @@ TARGET = thumbnaild
 QT += dbus
 CONFIG += c++11
 
-PKGCONFIG += link_pkgconfig link_prl
+CONFIG += link_pkgconfig link_prl
 
 packagesExist(qt5-boostable) {
     DEFINES += HAS_BOOSTER
     PKGCONFIG += qt5-boostable
-    QMAKE_LFLAGS += -rdynamic -pie
 } else {
     warning("qt5-boostable not available; startup times will be slower")
 }
