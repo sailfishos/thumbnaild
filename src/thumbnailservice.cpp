@@ -23,6 +23,7 @@
 #include "thumbnailservice.h"
 #include "thumbnaileradaptor.h"
 
+#include <nemothumbnailcache.h>
 
 namespace {
 
@@ -244,6 +245,7 @@ void ThumbnailService::processRequests()
 
 QString ThumbnailService::processUri(const QString &uri)
 {
+    NemoThumbnailCache *cache = NemoThumbnailCache::instance();
     QThread::msleep(100);
     return QString("dummy path");
 }

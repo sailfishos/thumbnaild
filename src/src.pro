@@ -5,6 +5,7 @@ QT += dbus
 CONFIG += c++11
 
 CONFIG += link_pkgconfig link_prl
+PKGCONFIG += nemothumbnailer-qt5
 
 packagesExist(qt5-boostable) {
     DEFINES += HAS_BOOSTER
