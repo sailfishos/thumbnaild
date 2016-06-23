@@ -59,7 +59,7 @@ private:
     friend class WorkerThread;
 
     void processRequests();
-    QString processUri(const QString &uri);
+    QString processUri(const QString &uri, unsigned size, bool unbounded, bool crop);
 
     void timerEvent(QTimerEvent *event) override;
 

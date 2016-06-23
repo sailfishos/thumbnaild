@@ -29,8 +29,8 @@ namespace {
 
 const QString serviceName(QStringLiteral("org.nemomobile.Thumbnailer"));
 
-const unsigned MinSupportedSize = 128;
-const unsigned MaxSupportedSize = 512;
+const unsigned MinSupportedSize = NemoThumbnailCache::Small;
+const unsigned MaxSupportedSize = NemoThumbnailCache::Large;
 
 const int LingerTimeMs = 2 * 60 * 1000;
 
@@ -95,10 +95,6 @@ unsigned ThumbnailService::Fetch(const QStringList &uris, unsigned size, bool un
         validRequest = false;
     } else if (size > MaxSupportedSize || (size < MinSupportedSize && !unbounded)) {
         qWarning() << "Invalid Fetch with unsupported size:" << size << "unbounded:" << unbounded;
-        validRequest = false;
-    } else if (crop) {
-        // We don't handle the crop option at this time
-        qWarning() << "Invalid Fetch with unsupported crop option";
         validRequest = false;
     }
 
@@ -220,6 +216,9 @@ void ThumbnailService::processRequests()
 
         // Process the next requested URI
         ThumbnailRequest *request = requests.last();
+        const unsigned imageSize(request->size);
+        const bool unbounded(request->unbounded);
+        const bool crop(request->crop);
         id = request->id;
         uri = request->uris.takeLast();
         if (request->uris.isEmpty()) {
@@ -239,15 +238,14 @@ void ThumbnailService::processRequests()
         }
 
         // Find or generate a thumbnail for this URI
-        path = processUri(uri);
+        path = processUri(uri, imageSize, unbounded, crop);
     }
 }
 
-QString ThumbnailService::processUri(const QString &uri)
+QString ThumbnailService::processUri(const QString &uri, unsigned size, bool unbounded, bool crop)
 {
-    NemoThumbnailCache *cache = NemoThumbnailCache::instance();
-    QThread::msleep(100);
-    return QString("dummy path");
+    NemoThumbnailCache::ThumbnailData data = NemoThumbnailCache::instance()->requestThumbnail(uri, QSize(size, size), crop, unbounded);
+    return data.validPath() ? data.path() : QString();
 }
 
 void ThumbnailService::timerEvent(QTimerEvent *event)
