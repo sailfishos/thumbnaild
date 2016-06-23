@@ -124,13 +124,13 @@ unsigned ThumbnailService::Fetch(const QStringList &uris, unsigned size, bool un
             request->crop = crop;
             request->uris = uris;
             requests.prepend(request);
+
+            // Wake a worker to process the request
+            requestAvailable.wakeOne();
         }
     }
 
-    if (validRequest) {
-        // Wake a worker to process the request
-        requestAvailable.wakeOne();
-    } else {
+    if (!validRequest) {
         // Report failure asynchronously
         emit requestCompleted(id);
     }
@@ -204,7 +204,7 @@ void ThumbnailService::processRequests()
         }
 
         // Take the next request
-        if (requests.isEmpty()) {
+        while (!serviceFinished && requests.isEmpty()) {
             requestAvailable.wait(&requestMutex);
         }
         if (serviceFinished) {
@@ -232,10 +232,10 @@ void ThumbnailService::processRequests()
         }
 
         // Start another handler if there are waiting requests
-        requestMutex.unlock();
         if (outstandingRequests) {
             requestAvailable.wakeOne();
         }
+        requestMutex.unlock();
 
         // Find or generate a thumbnail for this URI
         path = processUri(uri, imageSize, unbounded, crop);
@@ -258,9 +258,10 @@ void ThumbnailService::timerEvent(QTimerEvent *event)
         {
             QMutexLocker lock(&requestMutex);
             serviceFinished = true;
+            requestAvailable.wakeAll();
         }
-        requestAvailable.wakeAll();
 
+        QThread::msleep(1000);
         emit serviceExpired();
     }
 }
