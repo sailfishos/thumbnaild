@@ -10,6 +10,8 @@ BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(qt5-boostable)
 BuildRequires:  pkgconfig(nemothumbnailer-qt5)
+BuildRequires:  oneshot
+%{_oneshot_requires_post}
 
 %{!?qtc_qmake5:%define qtc_qmake5 %qmake5}
 %{!?qtc_make:%define qtc_make make}
@@ -27,10 +29,15 @@ Daemon for generating thumbnail images.
 %install
 rm -rf %{buildroot}
 %qmake5_install
+chmod +x %{buildroot}/%{_oneshotdir}/*
 
 %files
 %defattr(-,root,root,-)
 %{_bindir}/thumbnaild
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
+%{_oneshotdir}/remove-obsolete-tumbler-cache-dir
+
+%post
+%{_bindir}/add-oneshot --now remove-obsolete-tumbler-cache-dir
 
