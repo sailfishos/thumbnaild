@@ -9,7 +9,7 @@ Source0:    %{name}-%{version}.tar.bz2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(qt5-boostable)
-BuildRequires:  pkgconfig(nemothumbnailer-qt5)
+BuildRequires:  pkgconfig(nemothumbnailer-qt5) >= 0.2.0
 BuildRequires:  pkgconfig(libavcodec)
 BuildRequires:  pkgconfig(libavformat) >= 11.3
 BuildRequires:  pkgconfig(libavutil)
