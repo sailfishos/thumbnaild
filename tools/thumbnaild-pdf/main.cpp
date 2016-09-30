@@ -33,20 +33,52 @@
 #include "thumbnailutility.h"
 
 #include <QImage>
+#include <QScopedPointer>
 #include <QtDebug>
+#include <qmath.h>
+
+#include <poppler-qt5.h>
 
 #include <iostream>
-
-extern QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize, bool crop);
 
 namespace {
 
 int generateThumbnail(QFile &input, QFile &output, int width, int height, bool crop)
 {
-    QImage thumbnail = ::createVideoThumbnail(QFile::encodeName(input.fileName()), QSize(width, height), crop);
-    if (thumbnail.isNull()) {
-        std::cerr << std::endl << "Unable to generate thumbnail image from: " << QFile::encodeName(input.fileName()).constData();
+    QScopedPointer<Poppler::Document> pdf(Poppler::Document::load(input.fileName()));
+    if (!pdf) {
+        std::cerr << std::endl << "Unable to load PDF data from: " << QFile::encodeName(input.fileName()).constData();
         return 2;
+    }
+
+    QScopedPointer<Poppler::Page> page(pdf->page(0));
+    if (!page) {
+        std::cerr << std::endl << "Unable to load first page from: " << QFile::encodeName(input.fileName()).constData();
+        return 2;
+    }
+
+    const QSize requestedSize(width, height);
+    const QSizeF inputSize(page->pageSizeF());
+    const QSizeF targetSize(inputSize.scaled(requestedSize, crop ? Qt::KeepAspectRatioByExpanding : Qt::KeepAspectRatio));
+
+    QImage thumbnail = page->thumbnail();
+    if (thumbnail.isNull() || thumbnail.width() < qFloor(targetSize.width()) || thumbnail.height() < qFloor(targetSize.height())) {
+        // Render the image instead, scaled to the size we need
+        const double scale = 72.0 / std::max(inputSize.width() / targetSize.width(), inputSize.height() / targetSize.height());
+        thumbnail = page->renderToImage(scale, scale);
+    }
+    if (thumbnail.isNull()) {
+        std::cerr << std::endl << "Unable to render to thumbnail image: " << QFile::encodeName(output.fileName()).constData();
+        return 2;
+    }
+
+    if (crop) {
+        QRect subrect(QPoint(0, 0), requestedSize);
+        QSize size(thumbnail.size());
+        subrect.moveCenter(QPoint((size.width() - 1) / 2, (size.height() - 1) / 2));
+        thumbnail = thumbnail.copy(subrect);
+    } else {
+        thumbnail = thumbnail.scaled(requestedSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
 
     if (!thumbnail.save(&output, thumbnail.hasAlphaChannel() ? "PNG" : "JPG")) {
@@ -66,7 +98,6 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     QCoreApplication app(argc, argv);
     app.setApplicationVersion(QStringLiteral("0.1"));
 
-    ThumbnailUtility(app, "thumbnaild video thumbnail generator", &generateThumbnail);
-    return 0;
+    ThumbnailUtility(app, "thumbnaild PDF thumbnail generator", &generateThumbnail);
 }
 

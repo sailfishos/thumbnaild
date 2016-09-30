@@ -14,6 +14,7 @@ BuildRequires:  pkgconfig(libavcodec)
 BuildRequires:  pkgconfig(libavformat) >= 11.3
 BuildRequires:  pkgconfig(libavutil)
 BuildRequires:  pkgconfig(libswscale)
+BuildRequires:  pkgconfig(poppler-qt5)
 BuildRequires:  oneshot
 %{_oneshot_requires_post}
 
@@ -39,6 +40,7 @@ chmod +x %{buildroot}/%{_oneshotdir}/*
 %defattr(-,root,root,-)
 %{_bindir}/thumbnaild
 %{_bindir}/thumbnaild-video
+%{_bindir}/thumbnaild-pdf
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
 %{_oneshotdir}/remove-obsolete-tumbler-cache-dir

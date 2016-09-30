@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = thumbnaild-video
+SUBDIRS = thumbnaild-video thumbnaild-pdf

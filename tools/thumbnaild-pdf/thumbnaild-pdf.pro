@@ -1,18 +1,14 @@
 TEMPLATE = app
-TARGET = thumbnaild-video
+TARGET = thumbnaild-pdf
 
 CONFIG += c++11 hide_symbols
 
 CONFIG += link_pkgconfig
-PKGCONFIG += \
-        libavcodec \
-        libavformat \
-        libavutil \
-        libswscale
+PKGCONFIG += poppler-qt5
 
 INCLUDEPATH *= ..
 HEADERS = thumbnailutility.h
-SOURCES = main.cpp libavthumbnailer.cpp
+SOURCES = main.cpp
 
 target.path = /usr/bin
 
