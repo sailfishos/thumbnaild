@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = src oneshot
+SUBDIRS = src tools oneshot

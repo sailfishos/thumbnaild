@@ -10,6 +10,10 @@ BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(qt5-boostable)
 BuildRequires:  pkgconfig(nemothumbnailer-qt5)
+BuildRequires:  pkgconfig(libavcodec)
+BuildRequires:  pkgconfig(libavformat) >= 11.3
+BuildRequires:  pkgconfig(libavutil)
+BuildRequires:  pkgconfig(libswscale)
 BuildRequires:  oneshot
 %{_oneshot_requires_post}
 
@@ -34,6 +38,7 @@ chmod +x %{buildroot}/%{_oneshotdir}/*
 %files
 %defattr(-,root,root,-)
 %{_bindir}/thumbnaild
+%{_bindir}/thumbnaild-video
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
 %{_oneshotdir}/remove-obsolete-tumbler-cache-dir
