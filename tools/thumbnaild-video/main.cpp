@@ -30,23 +30,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
  */
 
-#include "thumbnailservice.h"
+#include "thumbnailutility.h"
 
-#include <QCoreApplication>
-#include <QtDBus>
+#include <QImage>
 #include <QtDebug>
+
+#include <iostream>
+
+extern QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize, bool crop);
+
+namespace {
+
+int generateThumbnail(QFile &input, QFile &output, int width, int height, bool crop)
+{
+    QImage thumbnail = ::createVideoThumbnail(QFile::encodeName(input.fileName()), QSize(width, height), crop);
+    if (thumbnail.isNull()) {
+        std::cerr << std::endl << "Unable to generate thumbnail image from: " << QFile::encodeName(input.fileName()).constData();
+        return 2;
+    }
+
+    if (!thumbnail.save(&output, thumbnail.hasAlphaChannel() ? "PNG" : "JPG")) {
+        std::cerr << std::endl << "Unable to save thumbnail image to: " << QFile::encodeName(output.fileName()).constData();
+        return 2;
+    }
+
+    output.flush();
+    output.close();
+    return 0;
+}
+
+}
 
 Q_DECL_EXPORT int main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
-    qWarning() << "Starting:" << argv[0];
+    app.setApplicationVersion(QStringLiteral("0.1"));
 
-    qDBusRegisterMetaType<ThumbnailPathList>();
-
-    ThumbnailService service;
-    QObject::connect(&service, &ThumbnailService::serviceExpired, qApp, &QCoreApplication::quit, Qt::QueuedConnection);
-
-    int result = app.exec();
-    qWarning() << "Finished:" << result;
-    return result;
+    ThumbnailUtility(app, "thumbnaild video thumbnail generator", &generateThumbnail);
+    return 0;
 }
+
