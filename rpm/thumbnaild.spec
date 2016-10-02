@@ -3,7 +3,7 @@ Summary:    Thumbnail generation daemon
 Version:    0.0
 Release:    1
 Group:      Applications/System
-License:    LGPLv2.1
+License:    BSD or GPLv2+
 URL:        https://github.com/nemomobile/thumbnaild
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires:  pkgconfig(Qt5Core)
