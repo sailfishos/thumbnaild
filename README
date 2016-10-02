@@ -6,3 +6,7 @@ freedesktop.org Thumbnail management guidelines ( https://specifications.freedes
 by aiming to share thumbnails with GUI applications using the nemo-qml-plugin-thumbnailer
 thumbnail generation logic.
 
+thumbnaild is released under the BSD license.
+
+The utility program thumbnaild-pdf is linked with the poppler library, which is released the GPL.
+
