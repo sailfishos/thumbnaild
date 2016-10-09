@@ -1,0 +1,7 @@
+[Unit]
+Description=Nemomobile Thumbnail daemon
+
+[Service]
+Type=dbus
+BusName=org.nemomobile.Thumbnailer
+ExecStart=/usr/bin/invoker -s --type=qt5 /usr/bin/thumbnaild

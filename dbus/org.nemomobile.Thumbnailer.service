@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=org.nemomobile.Thumbnailer
-Exec=/usr/bin/invoker -s --type=qt5 /usr/bin/thumbnaild
+Exec=/bin/false
+SystemdService=dbus-org.nemomobile.thumbnaild.service
