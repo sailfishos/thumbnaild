@@ -72,13 +72,13 @@ inline ThumbnailUtility::ThumbnailUtility(const QCoreApplication &app, const QSt
     }
 
     int width = parser.value(widthOption).toInt();
-    if (width < 1 || width > 512) {
+    if (width < 1) {
         std::cerr << std::endl << "Error: Invalid width." << std::endl << std::endl;
         parser.showHelp(1);
     }
 
     int height = parser.value(heightOption).toInt();
-    if (height < 1 || height > 512) {
+    if (height < 1) {
         std::cerr << std::endl << "Error: Invalid height." << std::endl << std::endl;
         parser.showHelp(1);
     }
