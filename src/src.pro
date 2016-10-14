@@ -25,9 +25,13 @@ SOURCES =\
     thumbnailservice.cpp \
     main.cpp
 
+SYSTEMD_FILE = ../systemd/dbus-org.nemomobile.thumbnaild.service
 SERVICE_FILE = ../dbus/org.nemomobile.Thumbnailer.service
 INTERFACE_FILE = ../dbus/org.nemomobile.Thumbnailer.xml
-OTHER_FILES += $$SERVICE_FILE $$INTERFACE_FILE
+OTHER_FILES += $$SYSTEMD_FILE $$SERVICE_FILE $$INTERFACE_FILE
+
+systemd.files = $$SYSTEMD_FILE
+systemd.path  = /usr/lib/systemd/user/
 
 service.files = $$SERVICE_FILE
 service.path  = /usr/share/dbus-1/services/
@@ -37,4 +41,4 @@ interface.path  = /usr/share/dbus-1/interfaces/
 
 target.path = /usr/bin
 
-INSTALLS += service interface target
+INSTALLS += systemd service interface target

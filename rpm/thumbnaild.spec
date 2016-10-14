@@ -41,6 +41,7 @@ chmod +x %{buildroot}/%{_oneshotdir}/*
 %{_bindir}/thumbnaild
 %{_bindir}/thumbnaild-video
 %{_bindir}/thumbnaild-pdf
+/usr/lib/systemd/user/dbus-org.nemomobile.thumbnaild.service
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
 %{_oneshotdir}/remove-obsolete-tumbler-cache-dir
