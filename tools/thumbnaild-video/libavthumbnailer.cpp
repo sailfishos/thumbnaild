@@ -179,7 +179,7 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
                 thumbnailer.codec->pix_fmt,
                 size.width(),
                 size.height(),
-                PIX_FMT_BGRA,
+                AV_PIX_FMT_BGRA,
                 SWS_BICUBIC,
                 0,
                 0,
@@ -190,7 +190,7 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
         AVFrame* result = av_frame_alloc();
         result->width = size.width();
         result->height = size.height();
-        result->format = PIX_FMT_BGRA;
+        result->format = AV_PIX_FMT_BGRA;
 
         if (av_frame_get_buffer(result, 32) < 0) {
             av_frame_free (&result);
