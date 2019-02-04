@@ -6,6 +6,7 @@ Group:      Applications/System
 License:    BSD or GPLv2+
 URL:        https://github.com/nemomobile/thumbnaild
 Source0:    %{name}-%{version}.tar.bz2
+Source1:    %{name}.privileges
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(Qt5Gui)
@@ -37,12 +38,16 @@ rm -rf %{buildroot}
 %qmake5_install
 chmod +x %{buildroot}/%{_oneshotdir}/*
 
+mkdir -p %{buildroot}%{_datadir}/mapplauncherd/privileges.d
+install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
+
 %files
 %defattr(-,root,root,-)
 %{_bindir}/thumbnaild
 %{_bindir}/thumbnaild-video
 %{_bindir}/thumbnaild-pdf
-/usr/lib/systemd/user/dbus-org.nemomobile.thumbnaild.service
+%{_datadir}/mapplauncherd/privileges.d/*
+%{_libdir}/systemd/user/dbus-org.nemomobile.thumbnaild.service
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
 %{_oneshotdir}/remove-obsolete-tumbler-cache-dir
