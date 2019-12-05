@@ -4,7 +4,7 @@ Version:    0.0
 Release:    1
 Group:      Applications/System
 License:    BSD or GPLv2+
-URL:        https://github.com/nemomobile/thumbnaild
+URL:        https://git.sailfishos.org/mer-core/thumbnaild
 Source0:    %{name}-%{version}.tar.bz2
 Source1:    %{name}.privileges
 BuildRequires:  pkgconfig(Qt5Core)
@@ -17,8 +17,6 @@ BuildRequires:  pkgconfig(libavformat) >= 11.3
 BuildRequires:  pkgconfig(libavutil)
 BuildRequires:  pkgconfig(libswscale)
 BuildRequires:  pkgconfig(poppler-qt5)
-BuildRequires:  oneshot
-%{_oneshot_requires_post}
 
 %{!?qtc_qmake5:%define qtc_qmake5 %qmake5}
 %{!?qtc_make:%define qtc_make make}
@@ -36,7 +34,6 @@ Daemon for generating thumbnail images.
 %install
 rm -rf %{buildroot}
 %qmake5_install
-chmod +x %{buildroot}/%{_oneshotdir}/*
 
 mkdir -p %{buildroot}%{_datadir}/mapplauncherd/privileges.d
 install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
@@ -50,8 +47,3 @@ install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
 %{_libdir}/systemd/user/dbus-org.nemomobile.thumbnaild.service
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
-%{_oneshotdir}/remove-obsolete-tumbler-cache-dir
-
-%post
-%{_bindir}/add-oneshot --now remove-obsolete-tumbler-cache-dir
-
