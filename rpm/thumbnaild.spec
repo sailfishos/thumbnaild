@@ -4,7 +4,7 @@ Version:    0.0
 Release:    1
 Group:      Applications/System
 License:    BSD or GPLv2+
-URL:        https://github.com/nemomobile/thumbnaild
+URL:        https://git.sailfishos.org/mer-core/thumbnaild
 Source0:    %{name}-%{version}.tar.bz2
 Source1:    %{name}.privileges
 BuildRequires:  pkgconfig(Qt5Core)
@@ -47,4 +47,3 @@ install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
 %{_libdir}/systemd/user/dbus-org.nemomobile.thumbnaild.service
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
-
