@@ -2,7 +2,6 @@ Name:       thumbnaild
 Summary:    Thumbnail generation daemon
 Version:    0.0
 Release:    1
-Group:      Applications/System
 License:    BSD or GPLv2+
 URL:        https://git.sailfishos.org/mer-core/thumbnaild
 Source0:    %{name}-%{version}.tar.bz2
@@ -17,9 +16,7 @@ BuildRequires:  pkgconfig(libavformat) >= 11.3
 BuildRequires:  pkgconfig(libavutil)
 BuildRequires:  pkgconfig(libswscale)
 BuildRequires:  pkgconfig(poppler-qt5)
-
-%{!?qtc_qmake5:%define qtc_qmake5 %qmake5}
-%{!?qtc_make:%define qtc_make make}
+BuildRequires:  systemd
 
 %description
 Daemon for generating thumbnail images.
@@ -28,8 +25,8 @@ Daemon for generating thumbnail images.
 %setup -q -n %{name}-%{version}
 
 %build
-%qtc_qmake5
-%qtc_make %{?_smp_mflags}
+%qmake5
+make %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
@@ -44,6 +41,6 @@ install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
 %{_bindir}/thumbnaild-video
 %{_bindir}/thumbnaild-pdf
 %{_datadir}/mapplauncherd/privileges.d/*
-%{_libdir}/systemd/user/dbus-org.nemomobile.thumbnaild.service
+%{_userunitdir}/dbus-org.nemomobile.thumbnaild.service
 %{_datadir}/dbus-1/services/org.nemomobile.Thumbnailer.service
 %{_datadir}/dbus-1/interfaces/org.nemomobile.Thumbnailer.xml
