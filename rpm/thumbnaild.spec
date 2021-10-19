@@ -16,7 +16,7 @@ BuildRequires:  pkgconfig(libavformat) >= 11.3
 BuildRequires:  pkgconfig(libavutil)
 BuildRequires:  pkgconfig(libswscale)
 BuildRequires:  pkgconfig(poppler-qt5)
-BuildRequires:  systemd
+BuildRequires:  pkgconfig(systemd)
 
 %description
 Daemon for generating thumbnail images.
