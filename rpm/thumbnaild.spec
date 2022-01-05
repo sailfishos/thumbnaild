@@ -1,9 +1,9 @@
 Name:       thumbnaild
 Summary:    Thumbnail generation daemon
-Version:    0.0
+Version:    0.0.11
 Release:    1
-License:    BSD or GPLv2+
-URL:        https://git.sailfishos.org/mer-core/thumbnaild
+License:    BSD and GPLv2+
+URL:        https://github.com/sailfishos/thumbnaild
 Source0:    %{name}-%{version}.tar.bz2
 Source1:    %{name}.privileges
 BuildRequires:  pkgconfig(Qt5Core)
@@ -37,6 +37,7 @@ install -m 644 -p %{SOURCE1} %{buildroot}%{_datadir}/mapplauncherd/privileges.d/
 
 %files
 %defattr(-,root,root,-)
+%license LICENSE.BSD LICENSE.GPL2
 %{_bindir}/thumbnaild
 %{_bindir}/thumbnaild-video
 %{_bindir}/thumbnaild-pdf
