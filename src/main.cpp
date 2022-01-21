@@ -44,7 +44,8 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     qDBusRegisterMetaType<ThumbnailPathList>();
 
     ThumbnailService service;
-    QObject::connect(&service, &ThumbnailService::serviceExpired, qApp, &QCoreApplication::quit, Qt::QueuedConnection);
+    QObject::connect(&service, &ThumbnailService::serviceExpired,
+                     qApp, &QCoreApplication::quit, Qt::QueuedConnection);
 
     int result = app.exec();
     qWarning() << "Finished:" << result;

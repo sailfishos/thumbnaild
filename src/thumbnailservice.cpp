@@ -88,7 +88,8 @@ ThumbnailService::ThumbnailService()
         qFatal("Unable to register server object");
     }
 
-    connect(this, &ThumbnailService::requestCompleted, this, &ThumbnailService::requestFinished, Qt::QueuedConnection);
+    connect(this, &ThumbnailService::requestCompleted,
+            this, &ThumbnailService::requestFinished, Qt::QueuedConnection);
 
     // Create worker threads to do the actual thumbnail processing
     for (int i = 0, n = QThread::idealThreadCount() * 2; i < n; ++i) {
