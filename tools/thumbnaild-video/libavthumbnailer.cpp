@@ -49,7 +49,7 @@ struct Thumbnailer
 {
     Thumbnailer()
         : format(0)
-        , codec(0)
+        , codecContext(0)
         , scale(0)
         , frame(0)
     {
@@ -61,8 +61,8 @@ struct Thumbnailer
             sws_freeContext(scale);
         }
 
-        if (codec) {
-            avcodec_close(codec);
+        if (codecContext) {
+            avcodec_free_context(&codecContext);
         }
 
         if (format) {
@@ -75,24 +75,24 @@ struct Thumbnailer
     }
 
     AVFormatContext *format;
-    AVCodecContext *codec;
+    AVCodecContext *codecContext;
     SwsContext *scale;
     AVFrame *frame;
 };
 }
 
-bool getVideoPacket(Thumbnailer &thumbnailer, int streamIndex, AVPacket &packet)
+bool getVideoPacket(Thumbnailer &thumbnailer, int streamIndex, AVPacket *packet)
 {
     bool frameFound = false;
 
     // Find first frame belonging to the requested stream
     while (!frameFound) {
-        if (av_read_frame(thumbnailer.format, &packet) < 0) {
+        if (av_read_frame(thumbnailer.format, packet) < 0) {
             break;
-        } else if (packet.stream_index == streamIndex) {
+        } else if (packet->stream_index == streamIndex) {
             frameFound = true;
         } else {
-            av_free_packet(&packet);
+            av_packet_unref(packet);
         }
     }
 
@@ -101,19 +101,12 @@ bool getVideoPacket(Thumbnailer &thumbnailer, int streamIndex, AVPacket &packet)
 
 QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize, bool crop)
 {
-    static bool initialized = false;
-    if (!initialized) {
-        av_register_all();
-        initialized = true;
-    }
-
     QImage image;
 
     Thumbnailer thumbnailer;
     AVCodec *codec;
 
     int streamIndex = 0;
-
     int rotation_angle = 0;
 
     if (avformat_open_input(&thumbnailer.format, fileName.toUtf8(), 0, 0)) {
@@ -133,31 +126,35 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
         rotation_angle = av_display_rotation_get((int32_t *)data);
     }
 
-    thumbnailer.codec = stream->codec;
+    thumbnailer.codecContext = avcodec_alloc_context3(codec);
+    if (!thumbnailer.codecContext) {
+        return image;
+    }
 
-    if (avcodec_open2(thumbnailer.codec, codec, 0) < 0) {
-        free(thumbnailer.codec);
-        thumbnailer.codec = 0;
+    avcodec_parameters_to_context(thumbnailer.codecContext, stream->codecpar);
+
+    if (avcodec_open2(thumbnailer.codecContext, codec, 0) < 0) {
         return image;
     }
 
     AVPacket packet;
-    av_init_packet(&packet);
-
     thumbnailer.frame = av_frame_alloc();
 
-    int decoded = 0;
     // Find first frame before seeking
-    while (!decoded && getVideoPacket(thumbnailer, streamIndex, packet)) {
-        if (avcodec_decode_video2(
-                    thumbnailer.codec, thumbnailer.frame, &decoded, &packet) < 0) {
-            av_free_packet(&packet);
+    while (getVideoPacket(thumbnailer, streamIndex, &packet)) {
+        if (avcodec_send_packet(thumbnailer.codecContext, &packet) < 0) {
+            av_packet_unref(&packet);
             return image;
         }
-        if (decoded) {
+
+        int ret = avcodec_receive_frame(thumbnailer.codecContext, thumbnailer.frame);
+        av_packet_unref(&packet);
+        if (ret >= 0) {
             av_frame_unref(thumbnailer.frame);
+            break;
+        } else if (ret != AVERROR(EAGAIN)) {
+            return image;
         }
-        av_free_packet(&packet);
     }
 
     int64_t seekTo = thumbnailer.format->duration / 10;
@@ -168,11 +165,11 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
             return image;
         }
     }
-    avcodec_flush_buffers(stream->codec);
+    avcodec_flush_buffers(thumbnailer.codecContext);
 
-    for (bool atEnd = false; ; ) {
-        int decoded = 0;
-        if (!getVideoPacket(thumbnailer, streamIndex, packet)) {
+    bool foundKeyFrame = false;
+    for (bool atEnd = false; !foundKeyFrame ; ) {
+        if (!getVideoPacket(thumbnailer, streamIndex, &packet)) {
             // The seek went to the end of the stream or the stream can't be read for some reason.
             // If it's the former then after seeking to the start of the video it should be possible
             // to read a valid packet, otherwise it's the latter so give up the second time around.
@@ -183,25 +180,33 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
                 av_seek_frame(thumbnailer.format, streamIndex, -1, AVSEEK_FLAG_BACKWARD);
                 continue;
             }
-            return image;
-        } else if (avcodec_decode_video2(
-                    thumbnailer.codec, thumbnailer.frame, &decoded, &packet) < 0) {
-            av_free_packet(&packet);
+        }
+
+        if (avcodec_send_packet(thumbnailer.codecContext, &packet) < 0) {
+            av_packet_unref(&packet);
             return image;
         }
 
-        av_free_packet(&packet);
+        while (1) {
+            int ret = avcodec_receive_frame(thumbnailer.codecContext, thumbnailer.frame);
 
-        if (decoded) {
-            if (thumbnailer.frame->key_frame) {
-                break;
-            } else {
-                av_frame_unref(thumbnailer.frame);
+            if (ret >= 0) {
+                if (thumbnailer.frame->key_frame) {
+                    foundKeyFrame = true;
+                    break;
+                } else {
+                    av_frame_unref(thumbnailer.frame);
+                }
+            } else if (ret != AVERROR(EAGAIN)) {
+                av_packet_unref(&packet);
+                return image;
             }
         }
+
+        av_packet_unref(&packet);
     }
 
-    QSize sourceSize(thumbnailer.codec->width, thumbnailer.codec->height);
+    QSize sourceSize(thumbnailer.codecContext->width, thumbnailer.codecContext->height);
     if (rotation_angle % 180 != 0) {
         sourceSize.transpose();
     }
@@ -216,9 +221,9 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
 
     if (SwsContext *scale = sws_getCachedContext(
                 0,
-                thumbnailer.codec->width,
-                thumbnailer.codec->height,
-                thumbnailer.codec->pix_fmt,
+                thumbnailer.codecContext->width,
+                thumbnailer.codecContext->height,
+                thumbnailer.codecContext->pix_fmt,
                 size.width(),
                 size.height(),
                 AV_PIX_FMT_BGRA,
@@ -235,7 +240,7 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
         result->format = AV_PIX_FMT_BGRA;
 
         if (av_frame_get_buffer(result, 32) < 0) {
-            av_frame_free (&result);
+            av_frame_free(&result);
             return image;
         }
 
@@ -243,7 +248,7 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
                   thumbnailer.frame->data,
                   thumbnailer.frame->linesize,
                   0,
-                  thumbnailer.codec->height,
+                  thumbnailer.codecContext->height,
                   result->data,
                   result->linesize);
 
@@ -251,7 +256,7 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
             memcpy(image.scanLine(x), &result->data[0][x * result->linesize[0]], 4 * size.width());
         }
 
-        av_frame_free (&result);
+        av_frame_free(&result);
 
         if (crop) {
             QRect subrect(QPoint(0, 0), requestedSize);
