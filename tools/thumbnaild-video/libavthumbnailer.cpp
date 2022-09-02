@@ -104,7 +104,11 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
     QImage image;
 
     Thumbnailer thumbnailer;
+#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(59,0,0)
+    const AVCodec *codec;
+#else
     AVCodec *codec;
+#endif
 
     int streamIndex = 0;
     int rotation_angle = 0;
