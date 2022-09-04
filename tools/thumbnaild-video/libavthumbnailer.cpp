@@ -204,6 +204,9 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
             } else if (ret != AVERROR(EAGAIN)) {
                 av_packet_unref(&packet);
                 return image;
+            } else {
+                // When EAGAIN is returned codec needs more data
+                break;
             }
         }
 
