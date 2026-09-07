@@ -17,7 +17,7 @@
     <signal name="Ready">
       <arg type="u" name="handle" />
       <arg type="a(ss)" name="thumbnails" />
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="ThumbnailPathList"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="ThumbnailPathList"/>
     </signal>
 
     <signal name="Failed">
