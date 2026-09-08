@@ -124,8 +124,19 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
 
     const AVStream *stream = thumbnailer.format->streams[streamIndex];
 
-    const uint8_t *data = av_stream_get_side_data(const_cast<AVStream *>(stream),
+    const uint8_t *data = 0;
+#if LIBAVFORMAT_VERSION_MAJOR >= 61
+    const AVPacketSideData *side_data =
+        av_packet_side_data_get(stream->codecpar->coded_side_data,
+                                stream->codecpar->nb_coded_side_data,
+                                AV_PKT_DATA_DISPLAYMATRIX);
+    if (side_data) {
+        data = side_data->data;
+    }
+#else
+    data = av_stream_get_side_data(const_cast<AVStream *>(stream),
                                                   AV_PKT_DATA_DISPLAYMATRIX, NULL);
+#endif
     if (data) {
         rotation_angle = av_display_rotation_get((int32_t *)data);
     }
@@ -195,7 +206,11 @@ QImage createVideoThumbnail(const QString &fileName, const QSize &requestedSize,
             int ret = avcodec_receive_frame(thumbnailer.codecContext, thumbnailer.frame);
 
             if (ret >= 0) {
+#if LIBAVFORMAT_VERSION_MAJOR >= 61
+                if (thumbnailer.frame->flags & AV_FRAME_FLAG_KEY) {
+#else
                 if (thumbnailer.frame->key_frame) {
+#endif
                     foundKeyFrame = true;
                     break;
                 } else {
